@@ -7,13 +7,13 @@ from TrafficAnalyzer import TrafficAnalyzer
 from AlertSystem import AlertSystem
 from PacketCapture import PacketCapture
 
+
 class IntrusionDetectionSystem:
     def __init__(self, interface="eth0"):
         self.packet_capture = PacketCapture()
         self.traffic_analyzer = TrafficAnalyzer()
         self.detection_engine = DetectionEngine()
         self.alert_system = AlertSystem()
-
         self.interface = interface
 
     def start(self):
@@ -43,3 +43,20 @@ class IntrusionDetectionSystem:
                 print("Stopping IDS...")
                 self.packet_capture.stop()
                 break
+
+    def process_packet(self, packet):
+        features = self.traffic_analyzer.analyze_packet(packet)
+
+        if features:
+            threats = self.detection_engine.detect_threats(features)
+
+            for threat in threats:
+                packet_info = {
+                    'source_ip': packet[IP].src,
+                    'destination_ip': packet[IP].dst,
+                    'source_port': packet[TCP].sport,
+                    'destination_port': packet[TCP].dport
+                }
+                self.alert_system.generate_alert(threat, packet_info)
+            return threats
+        return []

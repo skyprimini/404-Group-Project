@@ -33,6 +33,8 @@ class TrafficAnalyzer:
             return self.extract_features(packet, stats)
 
     def extract_features(self, packet, stats):
+        ip_src = packet[IP].src
+        ip_dst = packet[IP].dst
         flow_duration = stats['last_time'] - stats['start_time']
         if flow_duration > 0:
             packet_rate = stats['packet_count'] / flow_duration
@@ -42,13 +44,16 @@ class TrafficAnalyzer:
             byte_rate = 0
 
         return {
+            'src_ip': ip_src,  # Add source IP
+            'dst_ip': ip_dst,  # Add destination IP
             'packet_size': len(packet),
             'flow_duration': flow_duration,
             'packet_rate': packet_rate,
             'byte_rate': byte_rate,
-            'tcp_flags': packet[TCP].flags,
-            'window_size': packet[TCP].window
-    }
+            # Get integer value of flags
+            'tcp_flags': packet[TCP].flags.value if TCP in packet else 0,
+            'window_size': packet[TCP].window if TCP in packet else 0
+        }
     
     def get_tcp_flags(flags_int):
         flags = []
