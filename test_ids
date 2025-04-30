@@ -1,40 +1,68 @@
+import time
 from scapy.all import IP, TCP
 from datetime import datetime
-from IntrusionDetectionSystem import IntrusionDetectionSystem 
+from IntrusionDetectionSystem import IntrusionDetectionSystem
+
 
 def test_ids():
     # Create test packets to simulate various scenarios
-    
+
     test_packets = [
         # Normal traffic
-        IP(src="192.168.1.1", dst="192.168.1.2") / TCP(sport=1234, dport=80, flags="A"),
-        IP(src="192.168.1.3", dst="192.168.1.4") / TCP(sport=1235, dport=443, flags="P"),
+        IP(src="192.168.1.1", dst="192.168.1.2") /
+        TCP(sport=1234, dport=80, flags="A"),
+        IP(src="192.168.1.3", dst="192.168.1.4") /
+        TCP(sport=1235, dport=443, flags="P"),
 
-         # Normal traffic (Non-anomalous IP)
-        IP(src="192.168.1.1", dst="192.168.1.2") / TCP(sport=1234, dport=80, flags="A"),
-        IP(src="192.168.1.3", dst="192.168.1.4") / TCP(sport=1235, dport=443, flags="P"),
+        # Normal traffic (Non-anomalous IP)
+        IP(src="192.168.1.1", dst="192.168.1.2") /
+        TCP(sport=1234, dport=80, flags="A"),
+        IP(src="192.168.1.3", dst="192.168.1.4") /
+        TCP(sport=1235, dport=443, flags="P"),
 
         # Non-anomalous IP with reasonable packet sizes, rates, and no attack behavior
-        IP(src="192.168.1.100", dst="192.168.1.200") / TCP(sport=1000, dport=80, flags="A"),
-        IP(src="192.168.1.100", dst="192.168.1.200") / TCP(sport=1001, dport=80, flags="P"),
+        IP(src="192.168.1.100", dst="192.168.1.200") /
+        TCP(sport=1000, dport=80, flags="A"),
+        IP(src="192.168.1.100", dst="192.168.1.200") /
+        TCP(sport=1001, dport=80, flags="P"),
 
         # SYN flood simulation
-        IP(src="10.0.0.1", dst="192.168.1.2") / TCP(sport=5678, dport=80, flags="S"),
-        IP(src="10.0.0.2", dst="192.168.1.2") / TCP(sport=5679, dport=80, flags="S"),
-        IP(src="10.0.0.3", dst="192.168.1.2") / TCP(sport=5680, dport=80, flags="S"),
+        IP(src="10.0.0.1", dst="192.168.1.2") /
+        TCP(sport=5678, dport=80, flags="S"),
+        IP(src="10.0.0.2", dst="192.168.1.2") /
+        TCP(sport=5679, dport=80, flags="S"),
+        IP(src="10.0.0.3", dst="192.168.1.2") /
+        TCP(sport=5680, dport=80, flags="S"),
+
+        ##
+        IP(src="10.0.0.1", dst="192.168.1.2") /
+        TCP(sport=5678, dport=80, flags="S"),
+        IP(src="10.0.0.1", dst="192.168.1.2") /
+        TCP(sport=5679, dport=80, flags="S"),
+        IP(src="10.0.0.1", dst="192.168.1.2") /
+        TCP(sport=5680, dport=80, flags="S"),
+        IP(src="10.0.0.1", dst="192.168.1.2") /
+        TCP(sport=5681, dport=80, flags="S"),
 
         # Port scan simulation
-        IP(src="192.168.1.100", dst="192.168.1.2") / TCP(sport=4321, dport=22, flags="S"),
-        IP(src="192.168.1.100", dst="192.168.1.2") / TCP(sport=4321, dport=23, flags="S"),
-        IP(src="192.168.1.100", dst="192.168.1.2") / TCP(sport=4321, dport=25, flags="S"),
-        
+        IP(src="192.168.1.100", dst="192.168.1.2") /
+        TCP(sport=4321, dport=22, flags="S"),
+        IP(src="192.168.1.100", dst="192.168.1.2") /
+        TCP(sport=4321, dport=23, flags="S"),
+        IP(src="192.168.1.100", dst="192.168.1.2") /
+        TCP(sport=4321, dport=25, flags="S"),
+
         # Normal traffic (Non-anomalous IP)
-        IP(src="192.168.1.1", dst="192.168.1.2") / TCP(sport=1234, dport=80, flags="A"),
-        IP(src="192.168.1.3", dst="192.168.1.4") / TCP(sport=1235, dport=443, flags="P"),
+        IP(src="192.168.1.1", dst="192.168.1.2") /
+        TCP(sport=1234, dport=80, flags="A"),
+        IP(src="192.168.1.3", dst="192.168.1.4") /
+        TCP(sport=1235, dport=443, flags="P"),
 
         # Non-anomalous IP with reasonable packet sizes, rates, and no attack behavior
-        IP(src="192.168.1.100", dst="192.168.1.200") / TCP(sport=1000, dport=80, flags="A"),
-        IP(src="192.168.1.100", dst="192.168.1.200") / TCP(sport=1001, dport=80, flags="P"),
+        IP(src="192.168.1.100", dst="192.168.1.200") /
+        TCP(sport=1000, dport=80, flags="A"),
+        IP(src="192.168.1.100", dst="192.168.1.200") /
+        TCP(sport=1001, dport=80, flags="P"),
     ]
 
     # Create dummy normal traffic data for training the anomaly detector
@@ -49,30 +77,23 @@ def test_ids():
     # Initialize IDS system
     ids = IntrusionDetectionSystem()
 
-    # Train the anomaly detector with dummy data
     print("Training Anomaly Detector with Dummy Data...")
     ids.detection_engine.train_anomaly_detector(dummy_normal_data)
 
-    # Start the IDS system
     print("Starting IDS Test...")
     for i, packet in enumerate(test_packets, 1):
         print(f"\nProcessing packet {i}: {packet.summary()}")
 
-        # Analyze the packet
-        features = ids.traffic_analyzer.analyze_packet(packet)
+        threats = ids.process_packet(packet)
+        print(f"Threats returned by process_packet: {threats}")
 
-        if features:
-            # Detect threats based on features
-            threats = ids.detection_engine.detect_threats(features)
-
-            if threats:
-                print(f"Detected threats: {threats}")
-            else:
-                print("No threats detected.")
+        if threats:
+            print(f"Detected threats: {threats}")
         else:
-            print("Packet does not contain IP/TCP layers or is ignored.")
+            print("No threats detected.")
 
     print("\nIDS Test Completed.")
+
 
 if __name__ == "__main__":
     test_ids()
