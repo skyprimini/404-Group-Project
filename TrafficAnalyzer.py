@@ -44,8 +44,8 @@ class TrafficAnalyzer:
             byte_rate = 0
 
         return {
-            'src_ip': ip_src,  # Add source IP
-            'dst_ip': ip_dst,  # Add destination IP
+            'src_ip': ip_src,  # source IP
+            'dst_ip': ip_dst,  # destination IP
             'packet_size': len(packet),
             'flow_duration': flow_duration,
             'packet_rate': packet_rate,
