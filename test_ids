@@ -34,7 +34,7 @@ def test_ids():
         IP(src="10.0.0.3", dst="192.168.1.2") /
         TCP(sport=5680, dport=80, flags="S"),
 
-        ##
+        ##more tests
         IP(src="10.0.0.1", dst="192.168.1.2") /
         TCP(sport=5678, dport=80, flags="S"),
         IP(src="10.0.0.1", dst="192.168.1.2") /

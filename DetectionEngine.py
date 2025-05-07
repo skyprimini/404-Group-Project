@@ -9,7 +9,7 @@ class DetectionEngine:
     def __init__(self):
         self.recent_syns = defaultdict(lambda: defaultdict(
             lambda: 0))  # {dst_ip: {src_ip: count}}
-# Example: Detect if we see 3 SYN from different IPs to the same target quickly
+
         self.syn_flood_threshold = 3
         self.syn_flood_window = 5
         self.anomaly_detector = IsolationForest(
@@ -19,7 +19,6 @@ class DetectionEngine:
         self.signature_rules = self.load_signature_rules()
         self.training_data = []
 
-        # For improved port scan detection
         self.recent_connections = defaultdict(lambda: deque(
             maxlen=100))  # (dst_port, timestamp) per src_ip
 
@@ -31,14 +30,6 @@ class DetectionEngine:
                     features['packet_rate'] > 100
                 )
             },
-            # 'port_scan': {
-            #     'condition': lambda features: (
-            #         # Increased size threshold
-            #         features['packet_size'] < 100 and
-            #         # Lowered packet rate threshold
-            #         features['packet_rate'] > 50
-            #     )
-            # }
         }
 
     def train_anomaly_detector(self, normal_traffic_data):
